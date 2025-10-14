@@ -4,17 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>m.ai</title>
+    
+    <!-- 1. استدعاء ملف التنسيقات -->
     <link rel="stylesheet" href="styles.css">
-    <link rel="manifest" href="manifest.json">
-    <link rel="icon" href="icons/favicon.ico" type="image/x-icon">
-    <meta name="theme-color" content="#ffffff">
+    
+    <!-- ملاحظة: تم حذف الروابط الخاصة بـ manifest.json و favicon.ico مؤقتاً -->
 </head>
 <body>
-    <div id="app-container">
-        <!-- شاشة تسجيل الدخول/التسجيل (سيتم إنشاؤها بواسطة JS) -->
-    </div>
+    <!-- هذا هو العنصر الذي سيقوم JavaScript بملئه بالواجهة -->
+    <div id="app-container"></div>
 
+    <!-- 2. استدعاء مكتبة الأيقونات (مهم جداً أن يكون قبل app.js) -->
     <script src="https://cdn.jsdelivr.net/npm/lucide-react/dist/lucide-react.js"></script>
-    <script src="app.js"></script>
+    
+    <!-- 3. استدعاء ملف JavaScript الرئيسي مع إضافة 'defer' -->
+    <!-- 'defer' تضمن أن الكود لن يعمل إلا بعد تحميل كامل الصفحة -->
+    <script src="app.js" defer></script>
 </body>
 </html>
