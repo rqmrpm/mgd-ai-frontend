@@ -4,21 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>m.ai</title>
-    
-    <!-- 1. استدعاء ملف التنسيقات -->
     <link rel="stylesheet" href="styles.css">
-    
-    <!-- ملاحظة: تم حذف الروابط الخاصة بـ manifest.json و favicon.ico مؤقتاً -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>">
 </head>
 <body>
-    <!-- هذا هو العنصر الذي سيقوم JavaScript بملئه بالواجهة -->
-    <div id="app-container"></div>
+    <!-- سيتم بناء كل الواجهة هنا بواسطة app.js -->
+    <div id="app-container" class="loading">
+        <div class="initial-loader"></div>
+    </div>
 
-    <!-- 2. استدعاء مكتبة الأيقونات (مهم جداً أن يكون قبل app.js) -->
-    <script src="https://cdn.jsdelivr.net/npm/lucide-react/dist/lucide-react.js"></script>
+    <!-- مكتبة الأيقونات (ضرورية) -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     
-    <!-- 3. استدعاء ملف JavaScript الرئيسي مع إضافة 'defer' -->
-    <!-- 'defer' تضمن أن الكود لن يعمل إلا بعد تحميل كامل الصفحة -->
+    <!-- ملف الجافاسكريبت الرئيسي (مع defer لضمان التحميل الصحيح) -->
     <script src="app.js" defer></script>
 </body>
 </html>
