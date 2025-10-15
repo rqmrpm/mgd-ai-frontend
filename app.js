@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let state = {
         isLoggedIn: true, 
         currentUser: { userId: '1', username: 'TestUser' },
-        showSidebar: false, // ابدأ مغلقاً على الهاتف
+        showSidebar: false,
         currentMode: 'chat',
         conversations: [],
         currentConversationId: null,
@@ -57,15 +57,13 @@ document.addEventListener('DOMContentLoaded', () => {
         appContainer.innerHTML = getHTML_MainInterface();
         renderMessages();
         renderConversations();
-        renderModals(); // <-- إضافة مهمة لرسم النوافذ
+        renderModals();
         attachMainListeners();
         lucide.createIcons();
     }
     
     function renderModals() {
-        // حذف النوافذ القديمة
         document.querySelectorAll('.modal-overlay').forEach(el => el.remove());
-
         if (state.modals.showAPIManager) {
             appContainer.insertAdjacentHTML('beforeend', getHTML_APIManagerModal());
             attachAPIManagerListeners();
@@ -74,9 +72,9 @@ document.addEventListener('DOMContentLoaded', () => {
             appContainer.insertAdjacentHTML('beforeend', getHTML_SettingsModal());
             attachSettingsListeners();
         }
+        lucide.createIcons();
     }
     
-    // ... (بقية دوال render كما هي) ...
     function renderMessages() {
         const messagesArea = document.getElementById('messages-area');
         if (!messagesArea) return;
@@ -150,14 +148,14 @@ document.addEventListener('DOMContentLoaded', () => {
         let keysHTML = state.apiKeys.length === 0
             ? `<p style="text-align:center; color: var(--gray-500); padding: 2rem 0;">لم تقم بإضافة أي مفاتيح بعد</p>`
             : state.apiKeys.map(key => `
-                <div class="api-key-item">
+                <div class="api-key-item" data-key-id="${key.id}">
                     <div class="api-key-info">
                         <div class="name">${key.custom_name}</div>
                         <div class="type">${key.key_type} - ${key.key_function}</div>
                         <div class="key-preview">${key.api_key.substring(0, 4)}...${key.api_key.slice(-4)}</div>
                     </div>
                     <div class="api-key-actions">
-                        <button class="delete-btn" data-key-id="${key.id}"><i data-lucide="trash-2"></i></button>
+                        <button class="delete-btn"><i data-lucide="trash-2"></i></button>
                     </div>
                 </div>`).join('');
 
@@ -170,15 +168,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     <div class="modal-body">
                         <form id="api-key-form" class="api-key-form">
-                            <h3 class="font-semibold mb-3">إضافة مفتاح جديد</h3>
+                            <h3>إضافة مفتاح جديد</h3>
                             <div class="form-group"><input type="text" id="key-name" placeholder="اسم المفتاح (مثال: My Groq)" required></div>
                             <div class="form-group"><select id="key-type" required><option value="">اختر النوع</option><option value="معالجة">معالجة</option><option value="تخزين">تخزين</option><option value="فعل">فعل</option></select></div>
                             <div class="form-group"><input type="text" id="key-function" placeholder="الوظيفة (مثال: Groq, OpenAI, GitHub)" required></div>
                             <div class="form-group"><input type="text" id="key-value" placeholder="قيمة المفتاح (sk-...)" required></div>
-                            <div class="form-group"><textarea id="key-prompt" placeholder="شخصية المساعد (اختياري)"></textarea></div>
+                            <div class="form-group"><textarea id="key-prompt" placeholder="شخصية المساعد (اختياري)" rows="2"></textarea></div>
                             <button type="submit">إضافة المفتاح</button>
                         </form>
-                        <div class="api-key-list"><h3>المفاتيح المضافة:</h3>${keysHTML}</div>
+                        <div class="api-key-list"><h3>المفاتيح المضافة:</h3><div id="api-keys-container">${keysHTML}</div></div>
                     </div>
                 </div>
             </div>`;
@@ -202,9 +200,8 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>`;
     }
     
-    // ... (بقية دوال HTML كما هي) ...
     function getHTML_EmptyChat() { return `<div class="empty-chat"><div><svg width="120" height="120" viewBox="0 0 200 200" style="margin: 0 auto 1rem;"><text x="100" y="120" font-size="90" font-weight="bold" text-anchor="middle" fill="#000">m.ai</text></svg><h2>كيف يمكنني مساعدتك؟</h2><p>ابدأ بكتابة رسالة في الأسفل.</p></div></div>`; }
-    function getHTML_MessageBubble(msg) { const content = msg.content.replace(/</g, "&lt;").replace(/>/g, "&gt;"); return `<div class="message-wrapper ${msg.role}">${msg.role === 'assistant' ? `<div class="assistant-header"><div class="assistant-avatar">m</div><span class="assistant-name">m.ai</span></div>` : ''}<div class="message-bubble">${content}</div></div>`; }
+    function getHTML_MessageBubble(msg) { const content = (msg.content || '').replace(/</g, "&lt;").replace(/>/g, "&gt;"); return `<div class="message-wrapper ${msg.role}">${msg.role === 'assistant' ? `<div class="assistant-header"><div class="assistant-avatar">m</div><span class="assistant-name">m.ai</span></div>` : ''}<div class="message-bubble">${content}</div></div>`; }
     function getHTML_ThinkingIndicator() { return `<div class="message-wrapper assistant"><div class="thinking-indicator"><div class="assistant-avatar"><i data-lucide="loader-circle" class="thinking-spinner"></i></div><span class="assistant-name">يفكر...</span></div></div>`; }
     function getHTML_ConversationItem(conv) { const isActive = conv.conversation_id === state.currentConversationId; return `<button class="sidebar-button conv-button ${isActive ? 'active' : ''}" data-conv-id="${conv.conversation_id}"><div><div class="conv-title">${conv.title}</div><div class="conv-date">${new Date(conv.updated_at).toLocaleDateString('ar')}</div></div></button>`; }
 
@@ -213,35 +210,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // =================================================================================
 
     function attachMainListeners() {
-        // Sidebar toggle
-        document.getElementById('menu-btn').addEventListener('click', () => {
-            state.showSidebar = !state.showSidebar;
-            document.querySelector('.sidebar').classList.toggle('hidden');
-            document.querySelector('.sidebar-overlay').classList.toggle('hidden');
-        });
-        document.querySelector('.sidebar-overlay').addEventListener('click', () => {
-            state.showSidebar = false;
-            document.querySelector('.sidebar').classList.add('hidden');
-            document.querySelector('.sidebar-overlay').classList.add('hidden');
-        });
-
-        // Modal toggles
-        document.getElementById('api-manager-btn').addEventListener('click', async () => {
-            state.modals.showAPIManager = true;
-            try {
-                const data = await api.getKeys();
-                state.apiKeys = data.keys || [];
-            } catch (e) {
-                // error already alerted
-            }
-            render();
-        });
-        document.getElementById('settings-btn').addEventListener('click', () => {
-            state.modals.showSettings = true;
-            render();
-        });
-        
-        // Other listeners
+        document.getElementById('menu-btn').addEventListener('click', toggleSidebar);
+        document.querySelector('.sidebar-overlay').addEventListener('click', toggleSidebar);
+        document.getElementById('api-manager-btn').addEventListener('click', openAPIManager);
+        document.getElementById('settings-btn').addEventListener('click', openSettings);
         document.getElementById('new-chat-btn').addEventListener('click', handleNewConversation);
         const messageInput = document.getElementById('message-input');
         const sendBtn = document.getElementById('send-btn');
@@ -253,45 +225,66 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('message-form').addEventListener('submit', (e) => { e.preventDefault(); handleSendMessage(); });
     }
 
+    function toggleSidebar() {
+        state.showSidebar = !state.showSidebar;
+        document.querySelector('.sidebar').classList.toggle('hidden');
+        document.querySelector('.sidebar-overlay').classList.toggle('hidden');
+    }
+
+    async function openAPIManager() {
+        state.modals.showAPIManager = true;
+        render(); // Render the modal structure first
+        try {
+            const data = await api.getKeys();
+            state.apiKeys = data.keys || [];
+            render(); // Re-render to populate the modal with keys
+        } catch (e) { /* error already alerted */ }
+    }
+
+    function openSettings() {
+        state.modals.showSettings = true;
+        render();
+    }
+
+    function closeModal(modalId) {
+        if (modalId === 'api-manager') state.modals.showAPIManager = false;
+        if (modalId === 'settings') state.modals.showSettings = false;
+        render();
+    }
+
     function attachAPIManagerListeners() {
         const modal = document.querySelector('[data-modal-id="api-manager"]');
-        modal.querySelector('.modal-close-btn').addEventListener('click', () => {
-            state.modals.showAPIManager = false;
-            render();
-        });
+        modal.querySelector('.modal-close-btn').addEventListener('click', () => closeModal('api-manager'));
         
         modal.querySelector('#api-key-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const form = e.target;
             const keyData = {
-                custom_name: document.getElementById('key-name').value,
-                key_type: document.getElementById('key-type').value,
-                key_function: document.getElementById('key-function').value,
-                api_key: document.getElementById('key-value').value,
-                personality_prompt: document.getElementById('key-prompt').value,
+                custom_name: form.querySelector('#key-name').value,
+                key_type: form.querySelector('#key-type').value,
+                key_function: form.querySelector('#key-function').value,
+                api_key: form.querySelector('#key-value').value,
+                personality_prompt: form.querySelector('#key-prompt').value,
             };
             if (!keyData.custom_name || !keyData.key_type || !keyData.key_function || !keyData.api_key) {
                 return alert('الرجاء ملء الحقول الإجبارية');
             }
             try {
-                await api.addKey(keyData);
-                state.apiKeys.push(keyData); // Add to local state for immediate feedback
-                render(); // Re-render the whole UI to show the new key
-            } catch (err) {
-                // error already alerted
-            }
+                const newKey = await api.addKey(keyData);
+                state.apiKeys.push({ ...keyData, id: newKey.id });
+                render();
+            } catch (err) { /* error already alerted */ }
         });
 
-        modal.querySelectorAll('.delete-btn').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                const keyId = e.currentTarget.dataset.keyId;
+        modal.querySelectorAll('.api-key-item').forEach(item => {
+            item.querySelector('.delete-btn').addEventListener('click', async (e) => {
+                const keyId = item.dataset.keyId;
                 if (confirm('هل أنت متأكد من حذف هذا المفتاح؟')) {
                     try {
                         await api.deleteKey(keyId);
                         state.apiKeys = state.apiKeys.filter(k => k.id != keyId);
                         render();
-                    } catch (err) {
-                        // error already alerted
-                    }
+                    } catch (err) { /* error already alerted */ }
                 }
             });
         });
@@ -299,13 +292,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function attachSettingsListeners() {
         const modal = document.querySelector('[data-modal-id="settings"]');
-        modal.querySelector('.modal-close-btn').addEventListener('click', () => {
-            state.modals.showSettings = false;
-            render();
-        });
+        modal.querySelector('.modal-close-btn').addEventListener('click', () => closeModal('settings'));
     }
 
-    // ... (بقية دوال handle كما هي) ...
     async function handleSendMessage() {
         const messageInput = document.getElementById('message-input');
         const content = messageInput.value.trim();
@@ -327,12 +316,14 @@ document.addEventListener('DOMContentLoaded', () => {
             renderMessages();
         }
     }
+
     async function handleNewConversation() {
         state.currentConversationId = `conv_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
         state.messages = [];
         state.conversations.unshift({ conversation_id: state.currentConversationId, title: 'محادثة جديدة', updated_at: new Date().toISOString() });
         render();
     }
+
     async function handleSelectConversation(convId) {
         if (state.currentConversationId === convId) return;
         state.currentConversationId = convId;
@@ -342,3 +333,33 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await api.getMessages(convId);
             state.messages = data.messages || [];
         } catch(error) { state.messages = []; } 
+        finally {
+            state.isLoading = false;
+            render();
+        }
+    }
+
+    async function initializeUserSession() {
+        try {
+            const data = await api.getConversations();
+            state.conversations = data.conversations || [];
+            if (state.conversations.length > 0) {
+                await handleSelectConversation(state.conversations[0].conversation_id);
+            } else {
+                await handleNewConversation();
+            }
+        } catch (error) {
+            await handleNewConversation();
+        }
+    }
+
+    // =================================================================================
+    // --- 6. INITIALIZATION ---
+    // =================================================================================
+    
+    async function init() {
+        await initializeUserSession();
+    }
+
+    init();
+});
