@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
         messages: [],
         apiKeys: [],
         isLoading: false,
+        chatMode: 'chat', // 'chat' or 'action_agent'
         modals: {
             showAuth: false,
             isRegisterMode: false,
@@ -52,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
         deleteKey: (keyId) => api._call(`/api/keys/${keyId}`, 'DELETE'),
         getConversations: () => api._call('/api/conversations', 'GET'),
         getMessages: (convId) => api._call(`/api/conversations/${convId}`, 'GET'),
-        sendMessage: (messages, conversationId) => api._call('/api/chat', 'POST', { messages, conversationId }),
+        sendMessage: (messages, conversationId, chatMode) => api._call('/api/chat', 'POST', { messages, conversationId, chatMode }),
     };
 
     // =================================================================================
@@ -121,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // =================================================================================
 
     function getHTML_MainInterface() {
-        const { showSidebar, currentUser } = state;
+        const { showSidebar, currentUser, chatMode } = state;
         const userDisplayHTML = currentUser
             ? `<span class="username">${currentUser.username}</span>`
             : `<span class="guest">وضع الضيف</span>`;
@@ -129,10 +130,16 @@ document.addEventListener('DOMContentLoaded', () => {
         return `
             <div class="sidebar-overlay ${showSidebar ? '' : 'hidden'}"></div>
             <div class="sidebar ${showSidebar ? '' : 'hidden'}">
-                <div class="sidebar-header"><button id="new-chat-btn" class="sidebar-button new-chat-btn"><i data-lucide="plus"></i> <span>محادثة جديدة</span></button></div>
+                <div class="sidebar-header">
+                    <button id="new-chat-btn" class="sidebar-button new-chat-btn">
+                        <i data-lucide="plus"></i> <span>محادثة جديدة</span>
+                    </button>
+                </div>
                 <div class="sidebar-content" id="conversations-list"></div>
                 <div class="sidebar-footer">
-                    <button id="api-manager-btn" class="sidebar-button"><i data-lucide="key-round"></i> <span>إدارة APIs</span></button>
+                    <button id="api-manager-btn" class="sidebar-button">
+                        <i data-lucide="key-round"></i> <span>إدارة APIs</span>
+                    </button>
                     ${!currentUser ? '<button id="auth-btn" class="sidebar-button"><i data-lucide="log-in"></i> <span>تسجيل الدخول / حساب جديد</span></button>' : ''}
                     <div class="user-display">${userDisplayHTML}</div>
                 </div>
@@ -140,15 +147,28 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="main-content">
                 <div class="main-header">
                     <button id="menu-btn" class="menu-button"><i data-lucide="menu"></i></button>
-                    <div class="logo-header"><svg width="32" height="32" viewBox="0 0 200 200"><text x="100" y="120" font-size="90" font-weight="bold" text-anchor="middle" fill="#000">m.ai</text></svg></div>
-                    <div style="width: 40px;"></div>
+                    <div class="logo-header">
+                        <svg width="32" height="32" viewBox="0 0 200 200">
+                            <text x="100" y="120" font-size="90" font-weight="bold" text-anchor="middle" fill="#000">m.ai</text>
+                        </svg>
+                    </div>
+                    <div class="mode-indicator ${chatMode === 'action_agent' ? 'action-mode' : ''}">
+                        ${chatMode === 'action_agent' ? '<i data-lucide="zap"></i> وضع الفعل' : '<i data-lucide="message-circle"></i> وضع الدردشة'}
+                    </div>
                 </div>
                 <div class="messages-area" id="messages-area"></div>
                 <div class="input-area">
                     <div class="input-container">
                         <form id="message-form" class="input-form">
                             <textarea id="message-input" class="input-textarea" placeholder="اكتب رسالتك هنا..." rows="1"></textarea>
-                            <button id="send-btn" type="submit" class="send-button" disabled><i data-lucide="send"></i></button>
+                            <div class="input-buttons">
+                                <button type="button" id="mode-toggle-btn" class="mode-toggle-button ${chatMode === 'action_agent' ? 'active' : ''}" title="${chatMode === 'action_agent' ? 'التبديل إلى وضع الدردشة' : 'التبديل إلى وضع الفعل'}">
+                                    <i data-lucide="${chatMode === 'action_agent' ? 'message-circle' : 'zap'}"></i>
+                                </button>
+                                <button id="send-btn" type="submit" class="send-button" disabled>
+                                    <i data-lucide="send"></i>
+                                </button>
+                            </div>
                         </form>
                     </div>
                 </div>
@@ -222,10 +242,67 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>`;
     }
     
-    function getHTML_EmptyChat() { return `<div class="empty-chat"><div><svg width="120" height="120" viewBox="0 0 200 200" style="margin: 0 auto 1rem;"><text x="100" y="120" font-size="90" font-weight="bold" text-anchor="middle" fill="#000">m.ai</text></svg><h2>كيف يمكنني مساعدتك؟</h2><p>ابدأ بكتابة رسالة في الأسفل.</p></div></div>`; }
-    function getHTML_MessageBubble(msg) { const content = (msg.content || '').replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>'); return `<div class="message-wrapper ${msg.role}">${msg.role === 'assistant' ? `<div class="assistant-header"><div class="assistant-avatar">m</div><span class="assistant-name">m.ai</span></div>` : ''}<div class="message-bubble">${content}</div></div>`; }
-    function getHTML_ThinkingIndicator() { return `<div class="message-wrapper assistant"><div class="thinking-indicator"><div class="assistant-avatar"><i data-lucide="loader-circle" class="thinking-spinner"></i></div><span class="assistant-name">يفكر...</span></div></div>`; }
-    function getHTML_ConversationItem(conv) { const isActive = conv.conversation_id === state.currentConversationId; return `<button class="sidebar-button conv-button ${isActive ? 'active' : ''}" data-conv-id="${conv.conversation_id}"><div><div class="conv-title">${conv.title}</div><div class="conv-date">${new Date(conv.updated_at).toLocaleDateString('ar')}</div></div></button>`; }
+    function getHTML_EmptyChat() { 
+        return `
+            <div class="empty-chat">
+                <div>
+                    <svg width="120" height="120" viewBox="0 0 200 200" style="margin: 0 auto 1rem;">
+                        <text x="100" y="120" font-size="90" font-weight="bold" text-anchor="middle" fill="#000">m.ai</text>
+                    </svg>
+                    <h2>مرحباً بك في m.ai!</h2>
+                    <p>أنا مساعدك الذكي الشخصي. ابدأ بكتابة رسالة في الأسفل.</p>
+                    ${!state.currentUser ? '<div class="guest-notice"><p>💡 <strong>نصيحة:</strong> سجل الدخول لحفظ محادثاتك وإضافة مفاتيح API للوصول لإمكانيات كاملة</p></div>' : ''}
+                </div>
+            </div>`; 
+    }
+    
+    function getHTML_MessageBubble(msg) { 
+        const content = (msg.content || '')
+            .replace(/\n/g, '<br>')
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            .replace(/`(.*?)`/g, '<code>$1</code>')
+            .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+            
+        return `
+            <div class="message-wrapper ${msg.role}">
+                ${msg.role === 'assistant' ? `
+                    <div class="assistant-header">
+                        <div class="assistant-avatar">
+                            <svg width="24" height="24" viewBox="0 0 200 200">
+                                <text x="100" y="120" font-size="90" font-weight="bold" text-anchor="middle" fill="#fff">m</text>
+                            </svg>
+                        </div>
+                        <span class="assistant-name">m.ai</span>
+                    </div>
+                ` : ''}
+                <div class="message-bubble">${content}</div>
+            </div>`; 
+    }
+    
+    function getHTML_ThinkingIndicator() { 
+        return `
+            <div class="message-wrapper assistant">
+                <div class="thinking-indicator">
+                    <div class="assistant-avatar">
+                        <i data-lucide="loader-circle" class="thinking-spinner"></i>
+                    </div>
+                    <span class="assistant-name">m.ai يفكر...</span>
+                </div>
+            </div>`; 
+    }
+    
+    function getHTML_ConversationItem(conv) { 
+        const isActive = conv.conversation_id === state.currentConversationId;
+        const shortTitle = conv.title.length > 30 ? conv.title.substring(0, 30) + '...' : conv.title;
+        return `
+            <button class="sidebar-button conv-button ${isActive ? 'active' : ''}" data-conv-id="${conv.conversation_id}">
+                <div>
+                    <div class="conv-title">${shortTitle}</div>
+                    <div class="conv-date">${new Date(conv.updated_at).toLocaleDateString('ar')}</div>
+                </div>
+            </button>`; 
+    }
 
     // =================================================================================
     // --- 5. EVENT HANDLERS & LOGIC ---
@@ -242,6 +319,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         document.getElementById('api-manager-btn').addEventListener('click', openAPIManager);
+        document.getElementById('mode-toggle-btn').addEventListener('click', toggleChatMode);
 
         const messageInput = document.getElementById('message-input');
         const sendBtn = document.getElementById('send-btn');
@@ -336,6 +414,11 @@ document.addEventListener('DOMContentLoaded', () => {
         render();
     }
 
+    function toggleChatMode() {
+        state.chatMode = state.chatMode === 'chat' ? 'action_agent' : 'chat';
+        render();
+    }
+
     async function openAPIManager() {
         state.modals.showAPIManager = true;
         if (state.currentUser) {
@@ -376,10 +459,13 @@ document.addEventListener('DOMContentLoaded', () => {
         renderMessages();
 
         try {
-            const assistantResponse = await api.sendMessage(state.messages, state.currentConversationId);
+            const assistantResponse = await api.sendMessage(state.messages, state.currentConversationId, state.chatMode);
             state.messages.push(assistantResponse);
         } catch (error) {
-            state.messages.push({ role: 'assistant', content: `عذراً، حدث خطأ. قد تحتاج إلى تسجيل الدخول لاستخدام هذه الميزة.\n\n*${error.message}*` });
+            state.messages.push({ 
+                role: 'assistant', 
+                content: `عذراً، حدث خطأ. ${error.message}\n\n*قد تحتاج إلى تسجيل الدخول أو إضافة مفاتيح API لاستخدام هذه الميزة.*` 
+            });
         } finally {
             state.isLoading = false;
             renderMessages();
