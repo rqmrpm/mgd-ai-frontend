@@ -7,16 +7,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const appContainer = document.getElementById('app-container');
 
     let state = {
-        isLoggedIn: false,
-        currentUser: null, // { userId, username }
+        // تم التعديل: الدخول المباشر
+        isLoggedIn: true, 
+        currentUser: {
+            // مستخدم وهمي لتجاوز تسجيل الدخول
+            userId: '1', // معرف مستخدم افتراضي
+            username: 'TestUser'
+        },
         showSidebar: window.innerWidth > 768,
-        currentMode: 'chat', // 'chat' or 'agent'
+        currentMode: 'chat',
         conversations: [],
         currentConversationId: null,
         messages: [],
         apiKeys: [],
         isLoading: false,
-        // Modal states
         modals: {
             showSettings: false,
             showAPIManager: false,
@@ -31,11 +35,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const api = {
         _call: async (endpoint, method, body = null) => {
             const headers = { 'Content-Type': 'application/json' };
-            // Get user ID from state for authenticated requests
-            const userId = localStorage.getItem('userId');
-            if (userId) {
-                headers['Authorization'] = `Bearer ${userId}`;
-            }
+            // تم التعديل: استخدام المعرف الوهمي دائماً
+            headers['Authorization'] = `Bearer ${state.currentUser.userId}`;
 
             const options = { method, headers };
             if (body) options.body = JSON.stringify(body);
@@ -44,6 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
                 const data = await response.json();
                 if (!response.ok) {
+                    // هذا هو الخطأ الذي يظهر لك
                     throw new Error(data.error || `خطأ ${response.status}`);
                 }
                 return data;
@@ -53,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw error;
             }
         },
-        auth: (action, username, whatsapp_number) => api._call(`/auth/${action}`, 'POST', { username, whatsapp_number }),
+        // تم حذف وظائف المصادقة لأننا لا نستخدمها الآن
         getKeys: () => api._call('/api/keys', 'GET'),
         addKey: (keyData) => api._call('/api/keys', 'POST', keyData),
         deleteKey: (keyId) => api._call(`/api/keys/${keyId}`, 'DELETE'),
@@ -70,15 +72,12 @@ document.addEventListener('DOMContentLoaded', () => {
         appContainer.innerHTML = '';
         appContainer.className = '';
 
-        if (state.isLoggedIn) {
-            appContainer.innerHTML = getHTML_MainInterface();
-            renderMessages();
-            renderConversations();
-            attachMainListeners();
-        } else {
-            appContainer.innerHTML = getHTML_AuthScreen();
-            attachAuthListeners();
-        }
+        // تم التعديل: عرض الواجهة الرئيسية دائماً
+        appContainer.innerHTML = getHTML_MainInterface();
+        renderMessages();
+        renderConversations();
+        attachMainListeners();
+        
         lucide.createIcons();
     }
     
@@ -114,7 +113,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         listEl.innerHTML = state.conversations.map(conv => getHTML_ConversationItem(conv)).join('');
         
-        // Attach listeners to new conversation items
         listEl.querySelectorAll('.conv-button').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 const convId = e.currentTarget.dataset.convId;
@@ -122,40 +120,12 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
-    
-    // ... (Add other render functions for modals if needed)
 
     // =================================================================================
     // --- 4. HTML TEMPLATES (The building blocks of the UI) ---
     // =================================================================================
 
-    function getHTML_AuthScreen() {
-        return `
-            <div class="auth-screen">
-                <div class="auth-container">
-                    <div class="auth-header">
-                        <div class="auth-logo"><svg width="80" height="80" viewBox="0 0 200 200"><text x="100" y="100" font-size="90" font-weight="bold" text-anchor="middle" fill="#000">m.ai</text></svg></div>
-                        <h1 class="auth-title">مرحباً بك في m.ai</h1>
-                        <p class="auth-subtitle">مساعدك الذكي المدعوم بالذكاء الصناعي</p>
-                    </div>
-                    <div class="auth-box">
-                        <h2 id="auth-title">تسجيل الدخول</h2>
-                        <div class="auth-form-group">
-                            <label for="username">اسم المستخدم</label>
-                            <input type="text" id="username-input" class="auth-input" placeholder="أدخل اسم المستخدم">
-                        </div>
-                        <div class="auth-form-group">
-                            <label for="whatsapp">رقم الواتساب</label>
-                            <input type="tel" id="whatsapp-input" class="auth-input" placeholder="+963...">
-                        </div>
-                        <button id="auth-btn" class="auth-button">تسجيل الدخول</button>
-                        <div style="text-align: center; margin-top: 1rem;">
-                            <button id="toggle-auth-btn" class="auth-toggle-button">ليس لديك حساب؟ سجل الآن</button>
-                        </div>
-                    </div>
-                </div>
-            </div>`;
-    }
+    // تم حذف getHTML_AuthScreen() لأننا لا نحتاجها
 
     function getHTML_MainInterface() {
         const { showSidebar, currentMode } = state;
@@ -200,11 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function getHTML_MessageBubble(msg) {
         const content = msg.content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        return `
-            <div class="message-wrapper ${msg.role}">
-                ${msg.role === 'assistant' ? `<div class="assistant-header"><div class="assistant-avatar">m</div><span class="assistant-name">m.ai</span></div>` : ''}
-                <div class="message-bubble">${content}</div>
-            </div>`;
+        return `<div class="message-wrapper ${msg.role}">${msg.role === 'assistant' ? `<div class="assistant-header"><div class="assistant-avatar">m</div><span class="assistant-name">m.ai</span></div>` : ''}<div class="message-bubble">${content}</div></div>`;
     }
 
     function getHTML_ThinkingIndicator() {
@@ -220,46 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 5. EVENT HANDLERS & LOGIC ---
     // =================================================================================
 
-    function attachAuthListeners() {
-        const toggleBtn = document.getElementById('toggle-auth-btn');
-        const authBtn = document.getElementById('auth-btn');
-        const authTitle = document.getElementById('auth-title');
-        let isRegistering = false;
-
-        toggleBtn.addEventListener('click', () => {
-            isRegistering = !isRegistering;
-            authTitle.innerText = isRegistering ? 'إنشاء حساب جديد' : 'تسجيل الدخول';
-            authBtn.innerText = isRegistering ? 'إنشاء حساب' : 'تسجيل الدخول';
-            toggleBtn.innerText = isRegistering ? 'لديك حساب؟ سجل الدخول' : 'ليس لديك حساب؟ سجل الآن';
-        });
-
-        authBtn.addEventListener('click', async () => {
-            const username = document.getElementById('username-input').value.trim();
-            const whatsapp_number = document.getElementById('whatsapp-input').value.trim();
-
-            if (!username || !whatsapp_number) return alert('الرجاء ملء جميع الحقول.');
-
-            authBtn.disabled = true;
-            authBtn.innerText = 'جاري التحقق...';
-
-            try {
-                const action = isRegistering ? 'register' : 'login';
-                const data = await api.auth(action, username, whatsapp_number);
-                
-                // Save user info to localStorage for persistence
-                localStorage.setItem('userId', data.userId);
-                localStorage.setItem('username', data.username);
-                
-                await initializeUserSession();
-
-            } catch (error) {
-                // Error is already alerted by api._call
-            } finally {
-                authBtn.disabled = false;
-                authBtn.innerText = isRegistering ? 'إنشاء حساب' : 'تسجيل الدخول';
-            }
-        });
-    }
+    // تم حذف attachAuthListeners()
 
     function attachMainListeners() {
         document.getElementById('menu-btn').addEventListener('click', () => {
@@ -274,7 +201,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         messageInput.addEventListener('input', () => {
             sendBtn.disabled = messageInput.value.trim().length === 0;
-            // Auto-resize textarea
             messageInput.style.height = 'auto';
             messageInput.style.height = `${messageInput.scrollHeight}px`;
         });
@@ -283,8 +209,6 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             handleSendMessage();
         });
-        
-        // Add listeners for settings, api manager etc. later
     }
 
     async function handleSendMessage() {
@@ -313,7 +237,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     async function handleNewConversation() {
-        // Generate a unique ID for the new conversation
         state.currentConversationId = `conv_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
         state.messages = [];
         state.conversations.unshift({
@@ -329,7 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         state.currentConversationId = convId;
         state.isLoading = true;
-        render(); // Re-render to show active conversation and loading state for messages
+        render();
         
         try {
             const data = await api.getMessages(convId);
@@ -339,29 +262,21 @@ document.addEventListener('DOMContentLoaded', () => {
             state.messages = [];
         } finally {
             state.isLoading = false;
-            render(); // Re-render with the loaded messages
+            render();
         }
     }
 
     async function initializeUserSession() {
-        state.isLoggedIn = true;
-        state.currentUser = {
-            userId: localStorage.getItem('userId'),
-            username: localStorage.getItem('username')
-        };
-        
         try {
             const data = await api.getConversations();
             state.conversations = data.conversations || [];
             if (state.conversations.length > 0) {
-                // Load the most recent conversation
                 await handleSelectConversation(state.conversations[0].conversation_id);
             } else {
-                // Or start a new one
                 await handleNewConversation();
             }
         } catch (error) {
-            alert('فشل في جلب المحادثات السابقة. سنبدأ محادثة جديدة.');
+            // الخطأ سيظهر من api._call، لكننا سنبدأ محادثة جديدة على أي حال
             await handleNewConversation();
         }
     }
@@ -371,12 +286,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // =================================================================================
     
     async function init() {
-        const userId = localStorage.getItem('userId');
-        if (userId) {
-            await initializeUserSession();
-        } else {
-            render();
-        }
+        // تم التعديل: بدء جلسة المستخدم الوهمي مباشرة
+        await initializeUserSession();
     }
 
     init();
