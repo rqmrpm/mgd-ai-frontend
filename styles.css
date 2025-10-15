@@ -6,74 +6,36 @@
     --gray-50: #f9fafb;
     --gray-100: #f3f4f6;
     --gray-200: #e5e7eb;
-    --gray-300: #d1d5db;
     --gray-500: #6b7280;
     --gray-600: #4b5563;
     --gray-800: #1f2937;
     --red-500: #ef4444;
-    --blue-700: #1d4ed8;
-    --blue-100: #dbeafe;
-    --blue-50: #eff6ff;
-    --green-700: #047857;
-    --green-100: #d1fae5;
 }
 
 html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    width: 100%;
-    overflow: hidden; /* لمنع السكرول على مستوى الصفحة */
-    font-family: 'Tajawal', sans-serif;
-    background-color: var(--bg-color);
-    color: var(--text-color);
+    margin: 0; padding: 0; height: 100%; width: 100%;
+    overflow: hidden; font-family: 'Tajawal', sans-serif;
+    background-color: var(--bg-color); color: var(--text-color);
 }
 
-#app-container {
-    height: 100%;
-    width: 100%;
-}
+#app-container { height: 100%; width: 100%; }
 
 /* --- الواجهة الرئيسية --- */
-.main-interface {
-    display: flex;
-    height: 100%;
-    width: 100%;
-}
+.main-interface { display: flex; height: 100%; width: 100%; }
 
+/* --- الشريط الجانبي --- */
 .sidebar {
-    position: fixed; /* تغيير ليكون فوق المحتوى */
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: 260px;
-    background-color: var(--gray-50);
-    border-left: 1px solid var(--gray-200);
-    transform: translateX(0);
-    transition: transform 0.3s ease-in-out;
-    z-index: 100;
-    display: flex;
-    flex-direction: column;
+    position: fixed; top: 0; right: 0; bottom: 0; width: 260px;
+    background-color: var(--gray-50); border-left: 1px solid var(--gray-200);
+    transform: translateX(0); transition: transform 0.3s ease-in-out;
+    z-index: 100; display: flex; flex-direction: column;
 }
-
-.sidebar.hidden {
-    transform: translateX(100%);
-}
-
+.sidebar.hidden { transform: translateX(100%); }
 .sidebar-overlay {
-    position: fixed;
-    inset: 0;
-    background-color: rgba(0,0,0,0.4);
-    z-index: 99;
-    opacity: 1;
-    transition: opacity 0.3s ease-in-out;
+    position: fixed; inset: 0; background-color: rgba(0,0,0,0.4);
+    z-index: 99; opacity: 1; transition: opacity 0.3s ease-in-out;
 }
-
-.sidebar-overlay.hidden {
-    opacity: 0;
-    pointer-events: none;
-}
-
+.sidebar-overlay.hidden { opacity: 0; pointer-events: none; }
 .sidebar-header, .sidebar-footer { padding: 1rem; border-color: var(--gray-200); }
 .sidebar-header { border-bottom: 1px solid; }
 .sidebar-footer { border-top: 1px solid; }
@@ -89,45 +51,23 @@ html, body {
 .conv-title { font-weight: 500; font-size: 0.875rem; }
 .conv-date { font-size: 0.75rem; color: var(--gray-500); margin-top: 0.25rem; }
 .username-display { font-size: 0.8rem; color: var(--gray-600); text-align: center; padding-top: 0.5rem; border-top: 1px solid var(--gray-200); }
-.no-convs { text-align: center; color: var(--gray-500); padding: 1rem; font-size: 0.9rem; }
 
 /* --- المحتوى الرئيسي --- */
-.main-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    height: 100%; /* تأكد من أنه يملأ الارتفاع */
-    overflow: hidden;
-}
+.main-content { flex: 1; display: flex; flex-direction: column; height: 100%; overflow: hidden; }
 .main-header {
-    height: 56px;
-    border-bottom: 1px solid var(--gray-200);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 1rem;
-    background-color: var(--bg-color);
-    flex-shrink: 0; /* منع التقلص */
+    height: 56px; border-bottom: 1px solid var(--gray-200); display: flex;
+    align-items: center; justify-content: space-between; padding: 0 1rem;
+    background-color: var(--bg-color); flex-shrink: 0;
 }
 .menu-button { padding: 0.5rem; border-radius: 0.5rem; background: none; border: none; cursor: pointer; }
 .menu-button:hover { background-color: var(--gray-100); }
-.logo-header { display: flex; align-items: center; }
 
-.messages-area {
-    flex: 1;
-    overflow-y: auto;
-    padding: 1rem;
-}
-.messages-container {
-    max-width: 800px;
-    margin: 0 auto;
-}
+/* --- منطقة الرسائل --- */
+.messages-area { flex: 1; overflow-y: auto; padding: 1rem; }
+.messages-container { max-width: 800px; margin: 0 auto; }
 .empty-chat { display: flex; align-items: center; justify-content: center; height: 100%; text-align: center; }
-.empty-chat h2 { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem; }
-.empty-chat p { color: var(--gray-600); }
 .message-wrapper { margin-bottom: 1.5rem; }
 .message-wrapper.user { text-align: right; }
-.message-wrapper.assistant { text-align: left; }
 .message-bubble {
     display: inline-block; max-width: 85%; padding: 0.75rem 1rem;
     border-radius: 1.25rem; text-align: left; white-space: pre-wrap; word-wrap: break-word;
@@ -140,25 +80,23 @@ html, body {
     color: white; font-size: 0.8rem; font-weight: 700; flex-shrink: 0;
 }
 .assistant-name { font-weight: 600; }
-
-/* --- مؤشر الكتابة --- */
 .thinking-indicator { display: flex; align-items: center; gap: 0.75rem; }
 .thinking-spinner { width: 20px; height: 20px; animation: spin 1s linear infinite; }
 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
 /* --- منطقة الإدخال --- */
-.input-area {
-    border-top: 1px solid var(--gray-200);
-    padding: 0.5rem 1rem;
-    background-color: var(--bg-color);
-    flex-shrink: 0; /* منع التقلص */
-}
-.input-container { max-width: 800px; margin: 0 auto; }
+.input-area { border-top: 1px solid var(--gray-200); padding: 0.5rem 1rem; background-color: var(--bg-color); flex-shrink: 0; }
+.input-container { max-width: 800px; margin: 0 auto; position: relative; }
 .input-form {
     display: flex; align-items: flex-end; gap: 0.5rem;
     background-color: var(--gray-50); border: 1px solid var(--gray-200);
     border-radius: 1.25rem; padding: 0.5rem;
 }
+.input-action-button {
+    padding: 0.6rem; background: none; border: 1px solid var(--gray-300);
+    border-radius: 0.75rem; cursor: pointer; flex-shrink: 0;
+}
+.input-action-button:hover { background-color: var(--gray-100); }
 .input-textarea {
     flex: 1; background: transparent; border: none; outline: none;
     resize: none; max-height: 120px; padding: 0.5rem;
@@ -169,7 +107,28 @@ html, body {
     border: none; border-radius: 0.75rem; cursor: pointer; flex-shrink: 0;
 }
 .send-button:disabled { opacity: 0.5; cursor: not-allowed; }
-.send-button:hover:not(:disabled) { background-color: var(--gray-800); }
+.mic-button.recording { color: var(--red-500); }
+
+/* --- قائمة الإجراءات --- */
+.actions-menu {
+    position: absolute; bottom: 100%; left: 0;
+    background-color: white; border: 1px solid var(--gray-200);
+    border-radius: 0.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    padding: 0.5rem; z-index: 10;
+    transform-origin: bottom left;
+    transform: scale(0.95); opacity: 0;
+    transition: transform 0.1s ease-out, opacity 0.1s ease-out;
+    pointer-events: none;
+}
+.actions-menu.visible { transform: scale(1); opacity: 1; pointer-events: auto; }
+.actions-menu-item {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.75rem 1rem; border-radius: 0.25rem;
+    background: none; border: none; width: 100%; text-align: right;
+    cursor: pointer;
+}
+.actions-menu-item:hover { background-color: var(--gray-50); }
+.actions-menu-item.active { font-weight: 700; color: var(--text-color); }
 
 /* --- النوافذ المنبثقة (Modals) --- */
 .modal-overlay {
@@ -191,37 +150,11 @@ html, body {
 .modal-close-btn:hover { background-color: var(--gray-100); }
 .modal-body { flex: 1; overflow-y: auto; padding: 1.5rem; }
 
-/* --- مودال مدير الـ API --- */
-.api-manager-modal { max-width: 800px; }
-.api-key-form { border: 1px solid var(--gray-200); border-radius: 0.5rem; padding: 1rem; background-color: var(--gray-50); }
-.api-key-form h3 { font-weight: 600; margin-bottom: 1rem; }
-.api-key-form .form-group { margin-bottom: 0.75rem; }
-.api-key-form input, .api-key-form select {
-    width: 100%; padding: 0.6rem; border: 1px solid var(--gray-300);
-    border-radius: 0.5rem; box-sizing: border-box;
-}
-.api-key-form button {
-    width: 100%; padding: 0.7rem; background-color: var(--text-color);
-    color: var(--bg-color); border: none; border-radius: 0.5rem; cursor: pointer;
-}
-.api-key-list { margin-top: 1.5rem; }
-.api-key-list h3 { font-weight: 600; margin-bottom: 0.75rem; }
-.api-key-item {
-    border: 1px solid var(--gray-200); border-radius: 0.5rem; padding: 0.75rem;
-    display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;
-}
-.api-key-info .name { font-weight: 500; }
-.api-key-info .type { font-size: 0.875rem; color: var(--gray-600); }
-.api-key-info .key-preview { font-size: 0.75rem; color: var(--gray-500); margin-top: 0.25rem; direction: ltr; text-align: left; }
-.api-key-actions { display: flex; align-items: center; gap: 0.5rem; }
-.api-key-actions .delete-btn { color: var(--red-500); }
-.api-key-actions button { background: none; border: none; cursor: pointer; padding: 0.5rem; border-radius: 0.5rem; }
-.api-key-actions button:hover { background-color: var(--gray-100); }
-
 /* --- مودال الإعدادات --- */
 .settings-modal { max-width: 500px; }
-.settings-modal .info-box { background-color: var(--gray-50); padding: 1rem; border-radius: 0.5rem; }
-.settings-modal .logout-btn {
-    width: 100%; background-color: var(--red-500); color: white;
-    padding: 0.75rem; border: none; border-radius: 0.5rem; cursor: pointer;
+.settings-group { margin-bottom: 1.5rem; }
+.settings-group h3 { font-weight: 600; margin-bottom: 0.75rem; }
+.toggle-switch {
+    display: flex; align-items: center; justify-content: space-between;
+    background-color: var(--gray-50); padding: 1rem; border-radius: 0.5rem;
 }
